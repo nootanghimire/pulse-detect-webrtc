@@ -81,7 +81,7 @@ function convToGreenChannel(canvas){
     for(x=0; x<canvas.width; x++){
       imgData.data[pos++]=0; // r =0
       sum += imgData.data[pos++]
-      count++; ; // g = unchanged
+      count++; // g = unchanged
       imgData[pos++]=0; //b = 0
       pos++ ; //a = unchanged
     }
