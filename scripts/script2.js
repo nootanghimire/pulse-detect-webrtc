@@ -1,16 +1,21 @@
+var time_domain = [];
+var sampling_count = 0;
+var video = document.getElementById('video');
+var canvas = document.getElementById("input");
+
 function html5glasses() {
+    sampling_count++;
     // Start the clock
     //var elapsed_time = (new Date()).getTime();
     //alert("YAy1");
-      im = new Image();
-    im.src="profile.jpg";
+    //im = new Image();
+    //im.src="profile.jpg";
     //im.src = "ntn.jpg";
       //alert("YAy2");
-      canvas = document.getElementById("input"),
       // Get the canvas 2d Context
       ctx = canvas.getContext("2d");
       //alert("YAy3");
-      ctx.drawImage(im, 0,0);
+      ctx.drawImage(video, 0,0);
       //alert("YAy4");
     // Draw the video to canvas
     //ctx.drawImage(video, 0, 0, video.width, video.height, 0, 0, canvas.width, canvas.height);
@@ -47,7 +52,7 @@ function html5glasses() {
 
       canv_c.drawImage(im,comp[i].x+((comp[i].width)*0.35),comp[i].y+((comp[i].height*0.15)),comp[i].width*0.2, comp[i].height*0.2, 0,0,comp[i].width, comp[i].height);
 
-      alert(convToGreenChannel(canv));
+      time_domain.push(convToGreenChannel(canv));
     }
 }
 
@@ -90,3 +95,17 @@ function convToGreenChannel(canvas){
   ctx.putImageData(imgData,0,0);
   return sum/count;
 }
+var interVal_var;
+function callMain(){
+  if(sampling_count>=21){
+    clearInterval(interVal_var);
+  } else {
+    html5glasses();
+  }
+}
+navigator.getUserMedia({video: true}, function(stream) {
+    video.src = window.URL.createObjectURL(stream);
+    //localMediaStream = stream;
+  }, function errCallBack(){ alert("Error");} );
+
+interVal_var = setInterval(callMain(), 100);
