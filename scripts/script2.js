@@ -1,6 +1,10 @@
+navigator.getUserMedia = ( navigator.getUserMedia ||
+                       navigator.webkitGetUserMedia ||
+                       navigator.mozGetUserMedia ||
+                       navigator.msGetUserMedia);
 var time_domain = [];
 var sampling_count = 0;
-var video = document.getElementById('video');
+var video = document.getElementById('vid');
 var canvas = document.getElementById("input");
 
 function html5glasses() {
@@ -106,6 +110,6 @@ function callMain(){
 navigator.getUserMedia({video: true}, function(stream) {
     video.src = window.URL.createObjectURL(stream);
     //localMediaStream = stream;
-  }, function errCallBack(){ alert("Error");} );
+  }, function errCallBack(e){ alert("Error while reading webcam: "+e);} );
 
 interVal_var = setInterval(callMain(), 100);
