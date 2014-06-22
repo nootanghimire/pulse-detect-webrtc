@@ -127,10 +127,18 @@ var time_domain = [];
         time_domain.push(a_g);
     }
 
+    //greenify and find avergage pixel value in the area (0-255)
     function getAverageGreen(canvasContext, x,y,width, height){
         //start reading canvas from (x,y) 
-        
-        var imgData = canvasContext.getImageData(x+width*0.4,y+height*0.14,width*0.25,height*0.15);
+        //make things ready
+        x = x + width * 0.5;
+        y = y + height * 0.18;
+        width = width * 0.25 ;
+        height = height * 0.15;
+        x = x - width/2.0;
+        y = y - height/2.0; 
+        //var imgData = canvasContext.getImageData(x+width*0.4,y+height*0.14,width*0.25,height*0.15);
+        var imgData = canvasContext.getImageData(x,y,width,height);
         data = imgData.data;
         var sum = 0;
         var count = data.length / 4 ;
@@ -140,7 +148,10 @@ var time_domain = [];
             data[i] = 0;
             data[i+2] = 0;
         }
-        canvasContext.putImageData(imgData,x+width*0.4,y+height*0.14);
+        
+        
+        //canvasContext.putImageData(imgData,x+width*0.4,y+height*0.14);
+        canvasContext.putImageData(imgData,x,y);
         return sum/count;
     }
     function findFace(){
