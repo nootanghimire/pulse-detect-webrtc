@@ -9,6 +9,8 @@ Inspired by https://github.com/thearn/webcam-pulse-detector and current advancem
 
 This uses https://github.com/mtschirs/js-objectdetect to correctly detect the face, seperate the forehead, and then do calculations. 
 
+Currently showing errorenous output! (Might be because of noise, or maybe some implementation error)
+
 Calculation
 =======
 
