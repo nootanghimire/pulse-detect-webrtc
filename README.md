@@ -1,4 +1,6 @@
-Demo: http://github.nootan.com.np/pulse-detect-webrtc/webcam.html (Tested in Firefox (latest) )
+Demo: (Tested in Firefox (latest) and Chrome )
+1. http://github.nootan.com.np/pulse-detect-webrtc/webcam.html
+2. http://github.nootan.com.np/pulse-detect-webrtc/webcam_debug.html (Displays debug code)
 
 ----------------------------------
 
