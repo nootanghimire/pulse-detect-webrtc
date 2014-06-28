@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ImageToCanvasDemo</title>
+    <script src="js/dsp.js"></script>
+    <script src="js/objectdetect.js"></script>
+    <script src="js/objectdetect.frontalface.js"></script>
+    <script src="js/objectdetect.eye.js"></script>
+    
+    <script src="js/jquery.js"></script>
+    <script src="js/jquery.objectdetect.js"></script>
+</head>
+<body>
+    
+    <video src=""  id="video" width="600" height="600"></video>
+    <span id="proc">BPM: Processing</span>
+    <canvas id="can0" width="600" height="600"></canvas>
+    <canvas id="can1" width="600" height="600"></canvas>
+    <canvas id="can2" width="600" height="600"></canvas>
+    <canvas id="can3" width="600" height="600"></canvas>
+    <canvas id="can4" width="600" height="600"></canvas>
+    <canvas id="can5" width="600" height="600"></canvas>
+    <canvas id="can6" width="600" height="600"></canvas>
+    <canvas id="can7" width="600" height="600"></canvas>
+    <canvas id="can8" width="600" height="600"></canvas>
+    <canvas id="can9" width="600" height="600"></canvas>
+    <canvas id="can10" width="600" height="600"></canvas>
+    <canvas id="can11" width="600" height="600"></canvas>
+    <canvas id="can12" width="600" height="600"></canvas>
+    <canvas id="can13" width="600" height="600"></canvas>
+    <canvas id="can14" width="600" height="600"></canvas>
+    <canvas id="can15" width="600" height="600"></canvas>
+
+
+</body>
+<script type="text/javascript">
+//Assume that there are 10 canvas
+//Get the image from webcam every 100 ms and put to canvas.
+
+var v = document.getElementById("video");
+var intervalID;
+var imageCount = 0;
+var c = [];
+var ct = [];
+c[0] = document.getElementById("can0");
+c[1] = document.getElementById("can1");
+c[2] = document.getElementById("can2");
+c[3] = document.getElementById("can3");
+c[4] = document.getElementById("can4");
+c[5] = document.getElementById("can5");
+c[6] = document.getElementById("can6");
+c[7] = document.getElementById("can7");
+c[8] = document.getElementById("can8");
+c[9] = document.getElementById("can9");
+c[10] = document.getElementById("can10");
+c[11] = document.getElementById("can11");
+c[12] = document.getElementById("can12");
+c[13] = document.getElementById("can13");
+c[14] = document.getElementById("can14");
+c[15] = document.getElementById("can15");
+ct[0] = c[0].getContext("2d");
+ct[1] = c[1].getContext("2d");
+ct[2] = c[2].getContext("2d");
+ct[3] = c[3].getContext("2d");
+ct[4] = c[4].getContext("2d");
+ct[5] = c[5].getContext("2d");
+ct[6] = c[6].getContext("2d");
+ct[7] = c[7].getContext("2d");
+ct[8] = c[8].getContext("2d");
+ct[9] = c[9].getContext("2d");
+ct[10] = c[10].getContext("2d");
+ct[11] = c[11].getContext("2d");
+ct[12] = c[12].getContext("2d");
+ct[13] = c[13].getContext("2d");
+ct[14] = c[14].getContext("2d");
+ct[15] = c[15].getContext("2d");
+//alert("Yes");
+
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+    window.URL = window.URL || window.webkitURL;
+    navigator.getUserMedia({video:true}, function (stream) {
+        v.src = window.URL.createObjectURL(stream);
+        v.play();
+        //localMediaStream = stream;
+        //wait for 7 seconds.
+
+        window.setTimeout(createInterval,10000);
+    }, onCameraFail);
+
+function createInterval(){
+    intervalID = window.setInterval(addToCanvas,100);
+}
+function addToCanvas(){
+    //alert(v);
+    ct[imageCount].drawImage(v,0,0,600,600);
+    imageCount++;
+    if(imageCount>=16){
+        window.clearInterval(intervalID);
+        findFace();
+        startSignalProcess();
+    }
+}
+
+function onCameraFail(e){
+  alert("Error: "+e);
+}
+
+//Now run image processing on these canvas images.
+</script>
+<script>
+//Image processing code goes here.
+var time_domain = [];
+    function drawFaces(rect, color, i){
+        //use the same canvas
+
+        //ctx = canv.getContext("2d");
+        ct[i].strokeStyle = color;
+        ct[i].rect(rect[0],rect[1],rect[2],rect[3]);
+        ct[i].stroke();
+        var a_g = getAverageGreen(ct[i],rect[0],rect[1],rect[2],rect[3])
+        time_domain.push(a_g);
+    }
+
+    //greenify and find avergage pixel value in the area (0-255)
+    function getAverageGreen(canvasContext, x,y,width, height){
+        //start reading canvas from (x,y) 
+        //make things ready
+        x = x + width * 0.5;
+        y = y + height * 0.18;
+        width = width * 0.25 ;
+        height = height * 0.15;
+        x = x - width/2.0;
+        y = y - height/2.0; 
+        //var imgData = canvasContext.getImageData(x+width*0.4,y+height*0.14,width*0.25,height*0.15);
+        var imgData = canvasContext.getImageData(x,y,width,height);
+        data = imgData.data;
+        var sum = 0;
+        var count = data.length / 4 ;
+        for(var i = 0; i<data.length; i+=4){
+            //r,g,b,a
+            sum += data[i+1];
+            data[i] = 0;
+            data[i+2] = 0;
+        }
+        
+        
+        //canvasContext.putImageData(imgData,x+width*0.4,y+height*0.14);
+        canvasContext.putImageData(imgData,x,y);
+        return sum/count;
+    }
+    function findFace(){
+        for(var counter = 0; counter<16; counter++){
+            //scaleMin: 4, scaleFactor: 1.3 <== Removed this from objectdetect
+            $("#can"+counter).objectdetect("all", {classifier: objectdetect.frontalface}, function(faces) {
+                if(faces[0]){
+                    drawFaces(faces[0], "red",counter);
+                    //console.log(new Date().getTime()-start);
+                } else {
+                    console.log("Face not found on image:"+counter);
+                }
+            });
+        }
+    }
+    function startSignalProcess(){
+        var signal = new Float32Array(16);
+        signal = time_domain;
+        var fft = new FFT(16,10);
+        fft.forward(signal);
+        //console.log(rfft.trans);
+        //console.log(rfft)
+        var max = 0;
+        for(var i = 0; i<16;i++){
+            //pass 1 to 
+            if(fft.getBandFrequency(i)>=0.8 && fft.getBandFrequency(i)<=3){
+                //Band pass
+                var mag = Math.sqrt(Math.pow(fft.real[i],2) + Math.pow(fft.imag[i],2));
+                if(max<mag) max = mag;
+            }
+        }
+        console.log(max);
+        var proc_text = document.getElementById("proc");
+        proc_text.innerHTML = "BPM: "+max; 
+    }
+</script>
+</html>
