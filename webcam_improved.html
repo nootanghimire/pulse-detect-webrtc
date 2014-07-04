@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ImageToCanvasDemo</title>
+    <script src="js/dsp.js"></script>
+    <script src="js/objectdetect.js"></script>
+    <script src="js/objectdetect.frontalface.js"></script>
+    <script src="js/objectdetect.eye.js"></script>
+    
+    <script src="js/jquery.js"></script>
+    <script src="js/jquery.objectdetect.js"></script>
+    <style type="text/css">
+    canvas{
+      display: none;
+    }
+    </style>
+</head>
+<body>
+    
+    <video src=""  id="video" width="600" height="600"></video>
+    <span id="proc">BPM: Processing</span>
+    <canvas id="can_face" width="600" height="600"></canvas>
+    <!-- Other canvas will be created on the fly -->
+</body>
+<script type="text/javascript">
+//Assume that there are 10 canvas
+//Get the image from webcam every 100 ms and put to canvas.
+
+
+
+var v = document.getElementById("video"); //Video
+
+//Global decl
+
+var intervalID; 
+var face_match_try = 0;
+var max_face_match_try = 15;
+var face_rect;
+var forehead_rect;
+var c = [];
+var ct = []
+var time_domain = [];
+
+//Call main
+main();
+
+//Functions Start
+
+
+
+function createCanvasBulk(start, end, width, height){
+    for(var i = start; i<=end; i++){
+        var a = document.createElement('canvas');
+        a.setAttribute('width', width);
+        a.setAttribute('height', height);
+        a.setAttribute('id', "can"+i);
+        document.body.appendChild(a);
+    }
+}
+
+function setCanvasContext(){
+    for(var i = 0; i<=63; i++){
+        ct[i] = document.getElementById("can"+i).getContext("2d");
+    }
+}
+
+function findFace(){
+    //scaleMin: 4, scaleFactor: 1.3 <== Removed this from objectdetect
+    face_match_try++;
+    $("#can_face").objectdetect("all", {classifier: objectdetect.frontalface}, function(faces) {
+        if(faces[0]){
+            face_rect = faces[0];
+            //drawFaces(faces[0], "red",counter);
+            //console.log(new Date().getTime()-start);
+        } else {            
+            if(face_match_try<=max_face_match_try) {
+                console.log("Could not find face! Starting again!");
+                findFace();
+            } else {
+                console.log("Could not find face! Aborting!");
+            }
+        }
+    });        
+}
+
+function calculateForehead(){
+    //assume face_rect is set!
+    var x, y, width, height;
+    if(face_rect && face_rect!=NaN ){
+        //Set Face values
+        x = face_rect[0];
+        y = face_rect[1];
+        width = face_rect[2];
+        height = face_rect[3];
+
+        //Approximate position of forehead
+        x = x + width * 0.5;
+        y = y + height * 0.18;
+        width = width * 0.25 ;
+        height = height * 0.15;
+        x = x - width/2.0;
+        y = y - height/2.0; 
+
+        //Assign the forehead array with the thing
+        forehead_rect[0] = x;
+        forehead_rect[1] = y;
+        forehead_rect[2] = width;
+        forehead_rect[3] = height;
+
+    } else {
+        console.log("Oops! Face Rectangle is not yet set!")
+    }
+}
+
+function createInterval(){
+    findFace();
+    //Now faces_rect has the face rectangle locked!
+    //Now, calculate Forehead location
+    calculateForehead();
+    //Forehead Calculated, probably
+    //Now extract thing from video to canvas.
+    intervalID = window.setInterval(addToCanvas,100);
+}
+function addToCanvas(){
+    //alert(v);
+    ct[imageCount].drawImage(v,0,0,forehead_rect[2], forehead_rect[3], forehead_rect[0],forehead_rect[1],forehead_rect[2],forehead_rect[3]);
+    imageCount++;
+    if(imageCount>=64){
+        //Okay 64 green images on canvas.
+        //Now clear the interval. And 
+        window.clearInterval(intervalID);
+        //findFace();
+        startExtractData();
+        startSignalProcess();
+    }
+}
+
+function onCameraFail(e){
+  alert("Error: "+e);
+}
+
+function startExtractData(){
+    for(var i = 0; i<64; i++){
+        a_g = getAverageGreen(ct[i],face_rect[0],face_rect[1],face_rect[2],face_rect[3])
+        time_domain.push(a_g);
+    }
+}
+
+//greenify and find avergage pixel value in the area (0-255)
+function getAverageGreen(canvasContext, x,y,width, height){
+    //start reading canvas from (x,y) 
+    //make things ready
+    //var imgData = canvasContext.getImageData(x+width*0.4,y+height*0.14,width*0.25,height*0.15);
+    var imgData = canvasContext.getImageData(x,y,width,height);
+    data = imgData.data;
+    var sum = 0;
+    var count = data.length / 4 ;
+    for(var i = 0; i<data.length; i+=4){
+        //r,g,b,a
+        sum += data[i+1];
+        data[i] = 0;
+        data[i+2] = 0;
+    }
+    
+    
+    //canvasContext.putImageData(imgData,x+width*0.4,y+height*0.14);
+    canvasContext.putImageData(imgData,x,y);
+    return sum/count;
+}
+
+function startSignalProcess(){
+    var signal = new Float32Array(64);
+    signal = time_domain;
+    var fft = new FFT(64,10);
+    fft.forward(signal);
+    //console.log(rfft.trans);
+    //console.log(rfft)
+    var max = 0;
+    for(var i = 0; i<64;i++){
+        //pass 1 to 
+        if(fft.getBandFrequency(i)>=0.8 && fft.getBandFrequency(i)<=3){
+            //Band pass
+            var mag = Math.sqrt(Math.pow(fft.real[i],2) + Math.pow(fft.imag[i],2));
+            if(max<mag) max = mag;
+        }
+    }
+    console.log(max);
+    var proc_text = document.getElementById("proc");
+    proc_text.innerHTML = "BPM: "+max; 
+}
+
+function main(){
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+    window.URL = window.URL || window.webkitURL;
+    navigator.getUserMedia({video:true}, function (stream) {
+        v.src = window.URL.createObjectURL(stream);
+        v.play();
+        //localMediaStream = stream;
+        //wait for 10 seconds.
+        window.setTimeout(createInterval,10000);
+    }, onCameraFail);
+}
+</script>
+</html>
