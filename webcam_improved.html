@@ -142,7 +142,7 @@ function onCameraFail(e){
 
 function startExtractData(){
     for(var i = 0; i<64; i++){
-        a_g = getAverageGreen(ct[i],face_rect[0],face_rect[1],face_rect[2],face_rect[3])
+        a_g = getAverageGreen(ct[i],forehead_rect[0],forehead_rect[1],forehead_rect[2],forehead_rect[3])
         time_domain.push(a_g);
     }
 }
