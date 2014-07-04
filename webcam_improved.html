@@ -33,6 +33,7 @@ var v = document.getElementById("video"); //Video
 
 //Global decl
 
+var imageCount=0;
 var intervalID; 
 var face_match_try = 0;
 var max_face_match_try = 15;
@@ -120,6 +121,8 @@ function createInterval(){
     calculateForehead();
     //Forehead Calculated, probably
     //Now extract thing from video to canvas.
+    createCanvasBulk(0,63,forehead_rect[2],forehead_rect[3]);
+    setCanvasContext();
     intervalID = window.setInterval(addToCanvas,100);
 }
 function addToCanvas(){
