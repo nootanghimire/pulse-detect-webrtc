@@ -89,6 +89,7 @@ function findFace(){
 function calculateForehead(){
     //assume face_rect is set!
     var x, y, width, height;
+    var fh_r = []; 
     if(face_rect && face_rect!=NaN ){
         //Set Face values
         x = face_rect[0];
@@ -105,10 +106,11 @@ function calculateForehead(){
         y = y - height/2.0; 
 
         //Assign the forehead array with the thing
-        forehead_rect[0] = x;
-        forehead_rect[1] = y;
-        forehead_rect[2] = width;
-        forehead_rect[3] = height;
+        fh_r[0] = x;
+        fh_r[1] = y;
+        fh_r[2] = width;
+        fh_r[3] = height;
+        forehead_rect = fh_r ;
 
     } else {
         console.log("Oops! Face Rectangle is not yet set!")
