@@ -11,9 +11,9 @@
     <script src="js/jquery.js"></script>
     <script src="js/jquery.objectdetect.js"></script>
     <style type="text/css">
-    canvas{
+    /*canvas{
       display: none;
-    }
+    }*/ /* display the thing in debug */
     </style>
 </head>
 <body>
@@ -24,13 +24,14 @@
     <!-- Other canvas will be created on the fly -->
 </body>
 <script type="text/javascript">
-//Assume that there are 10 canvas
+
+
 //Get the image from webcam every 100 ms and put to canvas.
 
 
 
 var v = document.getElementById("video"); //Video
-
+var needed_c = document.getElementById("can_face").getContext("2d");
 //Global decl
 
 var imageCount=0;
@@ -115,6 +116,7 @@ function calculateForehead(){
 }
 
 function createInterval(){
+    needed_c.drawImage(v,0,0);
     findFace();
     //Now faces_rect has the face rectangle locked!
     //Now, calculate Forehead location
